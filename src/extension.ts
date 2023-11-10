@@ -19,6 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
 async function listFiles(uri: vscode.Uri) {
   const result = await vscode.workspace.fs.readDirectory(uri);
 
+  result.forEach(([name, type]) => {
+	if (type === 2) {
+		listFiles(vscode.Uri.joinPath(uri, name));
+	}
+  });
+
   console.log(result);
 }
 
