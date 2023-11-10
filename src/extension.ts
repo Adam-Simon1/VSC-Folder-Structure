@@ -22,20 +22,35 @@ async function listFiles(uri: vscode.Uri): Promise<Record<string, any>> {
   const result = await vscode.workspace.fs.readDirectory(uri);
   let structure: Record<string, any> = {};
 
+  const parentFolder = getParentFolder(uri);
+  structure[parentFolder] = {};
+
   await Promise.all(
     result.map(async ([name, type]) => {
       if (type === vscode.FileType.Directory) {
         const path = vscode.Uri.joinPath(uri, name);
 
         // Recursively process subdirectories
-        structure[name] = await listFiles(path);
+        structure[parentFolder][name] = await listFiles(path);
       } else {
-        structure[name] = "File";
+        structure[parentFolder][name] = "File";
       }
     })
   );
 
   return structure;
+}
+
+function getParentFolder(uri: vscode.Uri): string {
+  const pathSegments = uri.fsPath.split(/[\\/]/);
+
+  const cleanedSegments = pathSegments.filter(
+    (segment) => segment.trim() !== ""
+  );
+
+  const parentFolder = cleanedSegments.pop() || "Root";
+
+  return parentFolder;
 }
 
 export function deactivate() {}
