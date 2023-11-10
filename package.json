@@ -1,6 +1,6 @@
 {
-  "name": "fs-structure-copy",
-  "displayName": "FS-Structure-Copy",
+  "name": "folder-structure",
+  "displayName": "Folder-Structure",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -14,10 +14,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "fs-structure-copy.helloWorld",
-        "title": "Hello World"
+        "command": "folder-structure.copyStructure",
+        "title": "Copy Folder Structure"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        { 
+          "when": "explorerResourceIsFolder",
+          "command": "folder-structure.copyStructure",
+          "group": "copy"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
