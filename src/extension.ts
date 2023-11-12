@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
 
+type Item = { [key: string]: Item | string };
+
 export function activate(context: vscode.ExtensionContext) {
+  const config = vscode.workspace.getConfiguration(
+    "folder-structure.copyStructure"
+  );
+
   let disposable = vscode.commands.registerCommand(
     "folder-structure.copyStructure",
     async (uri: vscode.Uri) => {
@@ -9,9 +15,17 @@ export function activate(context: vscode.ExtensionContext) {
       // Process the results to a structure
       // Copy the structure to the clipboard
 
+      const type = config.get("type");
       const structure = await listFiles(uri);
-      const structureString = JSON.stringify(structure, null, 2);
-      vscode.env.clipboard.writeText(structureString);
+
+      if (type === "json") {
+        const structureString = JSON.stringify(structure, null, 2);
+        vscode.env.clipboard.writeText(structureString);
+      } else if (type === "tree") {
+        const treeStructure = convertToTree(structure);
+        const formattedTree = printTree(treeStructure);
+        vscode.env.clipboard.writeText(formattedTree);
+      }
     }
   );
 
@@ -22,18 +36,16 @@ async function listFiles(uri: vscode.Uri): Promise<Record<string, any>> {
   const result = await vscode.workspace.fs.readDirectory(uri);
   let structure: Record<string, any> = {};
 
-  const parentFolder = getParentFolder(uri);
-  structure[parentFolder] = {};
-
   await Promise.all(
     result.map(async ([name, type]) => {
       if (type === vscode.FileType.Directory) {
         const path = vscode.Uri.joinPath(uri, name);
 
         // Recursively process subdirectories
-        structure[parentFolder][name] = await listFiles(path);
+        structure[name] = await listFiles(path);
       } else {
-        structure[parentFolder][name] = "File";
+        // Process files
+        structure[name] = "File";
       }
     })
   );
@@ -41,16 +53,44 @@ async function listFiles(uri: vscode.Uri): Promise<Record<string, any>> {
   return structure;
 }
 
-function getParentFolder(uri: vscode.Uri): string {
-  const pathSegments = uri.fsPath.split(/[\\/]/);
+function convertToTree(input: { [key: string]: string | Item }): Item {
+  const result: Item = {};
 
-  const cleanedSegments = pathSegments.filter(
-    (segment) => segment.trim() !== ""
-  );
+  for (const key in input) {
+    const value = input[key];
 
-  const parentFolder = cleanedSegments.pop() || "Root";
+    if (typeof value === "string") {
+      // It's a file
+      result[key] = value;
+    } else {
+      // It's a directory (subfolder)
+      const subtree = convertToTree(value);
+      result[key] = subtree;
+    }
+  }
 
-  return parentFolder;
+  return result;
+}
+
+function printTree(tree: Item, indentation: string = ""): string {
+  let result = "";
+
+  for (const key in tree) {
+    const value = tree[key];
+
+    if (typeof value === "string") {
+      // It's a file
+      result += `${indentation}|-- ${key}\n`;
+    } else {
+      // It's a directory (subfolder)
+      result += `${indentation}|-- ${key}\n${printTree(
+        value,
+        `${indentation}   `
+      )}`;
+    }
+  }
+
+  return result;
 }
 
 export function deactivate() {}

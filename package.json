@@ -19,13 +19,38 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "folder-structure.copyStructure",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
-        { 
+        {
           "when": "explorerResourceIsFolder",
           "command": "folder-structure.copyStructure",
           "group": "copy"
         }
       ]
+    },
+    "configuration": {
+      "title": "Folder Structure",
+      "properties": {
+        "folder-structure.copyStructure.indentation": {
+          "type": "number",
+          "default": 2,
+          "description": "The number of spaces to use for indentation."
+        },
+        "folder-structure.copyStructure.type": {
+          "type": "string",
+          "default": "tree",
+          "description": "The type of folder structure.",
+          "enum": [
+            "json",
+            "tree"
+          ]
+        }
+      }
     }
   },
   "scripts": {
