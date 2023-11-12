@@ -53,4 +53,4 @@ This extension contributes the following settings:
 - `folder-structure.copyStructure.indentation`: The number of spaces to use for indentation.
 - `folder-structure.copyStructure.type`: The type of the structure, both of which are shown above.
 
-## Release Notes
+## [Change Log](./CHANGELOG.md)

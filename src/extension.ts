@@ -15,15 +15,17 @@ export function activate(context: vscode.ExtensionContext) {
       // Process the results to a structure
       // Copy the structure to the clipboard
 
-      const type = config.get("type");
+      const type: string | undefined = config.get("type") || "tree";
+      const indentation: number = config.get("indentation") || 2;
+
       const structure = await listFiles(uri);
 
       if (type === "json") {
-        const structureString = JSON.stringify(structure, null, 2);
+        const structureString = JSON.stringify(structure, null, indentation);
         vscode.env.clipboard.writeText(structureString);
       } else if (type === "tree") {
         const treeStructure = convertToTree(structure);
-        const formattedTree = printTree(treeStructure);
+        const formattedTree = printTree(treeStructure, indentation);
         vscode.env.clipboard.writeText(formattedTree);
       }
     }
@@ -72,7 +74,11 @@ function convertToTree(input: { [key: string]: string | Item }): Item {
   return result;
 }
 
-function printTree(tree: Item, indentation: string = ""): string {
+function printTree(
+  tree: Item,
+  spaces: number,
+  indentation: string = ""
+): string {
   let result = "";
 
   for (const key in tree) {
@@ -85,7 +91,8 @@ function printTree(tree: Item, indentation: string = ""): string {
       // It's a directory (subfolder)
       result += `${indentation}|-- ${key}\n${printTree(
         value,
-        `${indentation}   `
+        spaces,
+        `${indentation}${" ".repeat(spaces)}`
       )}`;
     }
   }
