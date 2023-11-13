@@ -1,7 +1,11 @@
 {
   "name": "folder-structure",
   "displayName": "Folder-Structure",
-  "description": "",
+  "description": "Copy a folder structure just by a click",
+  "publisher": "AdamSimon",
+  "icon": "./assets/icon.jpeg",
+  "repository": "https://github.com/Adam-Simon1/VSC-Folder-Structure",
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.84.0"

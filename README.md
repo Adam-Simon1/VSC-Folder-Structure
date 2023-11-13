@@ -2,7 +2,7 @@
 
 This is a VS Code extension that allows you to copy a folder structure just by right clicking on it.
 
-## Features
+## Usage
 
 <img src='./assets/preview.png'/>
 
@@ -53,4 +53,6 @@ This extension contributes the following settings:
 - `folder-structure.copyStructure.indentation`: The number of spaces to use for indentation.
 - `folder-structure.copyStructure.type`: The type of the structure, both of which are shown above.
 
-## [Change Log](./CHANGELOG.md)
+## Change Log
+
+Check the [Change Log](./CHANGELOG.md) for any version changes.
