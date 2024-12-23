@@ -46,6 +46,23 @@ Once you click on the Copy Folder Structure, in the clipboard there is going to 
    |-- mod.rs
 ```
 
+### Tabs
+
+```
+errors.rs
+main.rs
+settings.rs
+fileactions
+   compression.rs
+   files_manipulation.rs
+   mod.rs
+filesystem
+   caching.rs
+   disks.rs
+   file_system.rs
+   mod.rs
+```
+
 ## Extension Settings
 
 This extension contributes the following settings:

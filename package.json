@@ -20,6 +20,10 @@
       {
         "command": "folder-structure.copyStructure",
         "title": "Copy Folder Structure"
+      },
+      {
+        "command": "folder-structure.copyStructureAdvanced",
+        "title": "Copy Folder Structure (advanced)"
       }
     ],
     "menus": {
@@ -27,12 +31,21 @@
         {
           "command": "folder-structure.copyStructure",
           "when": "false"
+        },
+        {
+          "command": "folder-structure.copyStructureAdvanced",
+          "when": "false"
         }
       ],
       "explorer/context": [
         {
           "when": "explorerResourceIsFolder",
           "command": "folder-structure.copyStructure",
+          "group": "copy"
+        },
+        {
+          "when": "explorerResourceIsFolder",
+          "command": "folder-structure.copyStructureAdvanced",
           "group": "copy"
         }
       ]
@@ -51,7 +64,8 @@
           "description": "The type of folder structure.",
           "enum": [
             "json",
-            "tree"
+            "tree",
+            "tabs"
           ]
         }
       }

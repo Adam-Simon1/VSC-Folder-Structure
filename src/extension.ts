@@ -7,7 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
     "folder-structure.copyStructure"
   );
 
-  let disposable = vscode.commands.registerCommand(
+  let copyStructureSimple = vscode.commands.registerCommand(
     "folder-structure.copyStructure",
     async (uri: vscode.Uri) => {
       // Get the folder uri the user right clicked on and executed the command
@@ -23,15 +23,48 @@ export function activate(context: vscode.ExtensionContext) {
       if (type === "json") {
         const structureString = JSON.stringify(structure, null, indentation);
         vscode.env.clipboard.writeText(structureString);
-      } else if (type === "tree") {
+      } else if (type === "tree" || type === "tabs") {
         const treeStructure = convertToTree(structure);
-        const formattedTree = printTree(treeStructure, indentation);
+        const formattedTree = printTree(treeStructure, indentation, type);
         vscode.env.clipboard.writeText(formattedTree);
       }
     }
   );
 
-  context.subscriptions.push(disposable);
+  let copyStructureAdvanced = vscode.commands.registerCommand(
+    "folder-structure.copyStructureAdvanced",
+    async (uri: vscode.Uri) => {
+      const panel = vscode.window.createWebviewPanel(
+        "folderStructure",
+        "Folder Structure",
+        vscode.ViewColumn.One,
+        {}
+      );
+
+      const structure = await listFiles(uri);
+
+      panel.webview.html = webviewContent();
+
+      console.log(structure);
+    }
+  );
+
+  context.subscriptions.push(copyStructureSimple, copyStructureAdvanced);
+}
+
+function webviewContent() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copy Folder Structure</title>
+</head>
+<body>
+    
+</body>
+</html>
+`;
 }
 
 async function listFiles(uri: vscode.Uri): Promise<Record<string, any>> {
@@ -77,6 +110,7 @@ function convertToTree(input: { [key: string]: string | Item }): Item {
 function printTree(
   tree: Item,
   spaces: number,
+  type: string,
   indentation: string = ""
 ): string {
   let result = "";
@@ -86,14 +120,28 @@ function printTree(
 
     if (typeof value === "string") {
       // It's a file
-      result += `${indentation}|-- ${key}\n`;
+      if (type === "tabs") {
+        result += `${indentation}${key}\n`;
+      } else {
+        result += `${indentation}|-- ${key}\n`;
+      }
     } else {
       // It's a directory (subfolder)
-      result += `${indentation}|-- ${key}\n${printTree(
-        value,
-        spaces,
-        `${indentation}${" ".repeat(spaces)}`
-      )}`;
+      if (type === "tabs") {
+        result += `${indentation}${key}\n${printTree(
+          value,
+          spaces,
+          type,
+          `${indentation}${" ".repeat(spaces)}`
+        )}`;
+      } else {
+        result += `${indentation}|-- ${key}\n${printTree(
+          value,
+          spaces,
+          type,
+          `${indentation}${" ".repeat(spaces)}`
+        )}`;
+      }
     }
   }
 
