@@ -1,100 +1,114 @@
 {
-  "name": "folder-structure",
-  "displayName": "Folder-Structure",
-  "description": "Copy a folder structure just by a click",
-  "publisher": "AdamSimon",
-  "icon": "./assets/icon.jpeg",
-  "repository": "https://github.com/Adam-Simon1/VSC-Folder-Structure",
-  "license": "MIT",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.84.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "folder-structure.copyStructure",
-        "title": "Copy Folder Structure"
-      },
-      {
-        "command": "folder-structure.copyStructureAdvanced",
-        "title": "Copy Folder Structure (advanced)"
-      }
-    ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "folder-structure.copyStructure",
-          "when": "false"
-        },
-        {
-          "command": "folder-structure.copyStructureAdvanced",
-          "when": "false"
-        }
+   "name": "folder-structure",
+   "displayName": "Folder-Structure",
+   "description": "Copy a folder structure just by a click",
+   "publisher": "AdamSimon",
+   "icon": "./assets/icon.jpeg",
+   "repository": "https://github.com/Adam-Simon1/VSC-Folder-Structure",
+   "license": "MIT",
+   "version": "0.0.1",
+   "engines": {
+      "vscode": "^1.84.0"
+   },
+   "categories": [
+      "Other"
+   ],
+   "activationEvents": [],
+   "main": "./dist/extension.js",
+   "contributes": {
+      "commands": [
+         {
+            "command": "folder-structure.copyStructure",
+            "title": "Copy Folder Structure"
+         },
+         {
+            "command": "folder-structure.copyStructureAdvanced",
+            "title": "Copy Folder Structure (advanced)"
+         }
       ],
-      "explorer/context": [
-        {
-          "when": "explorerResourceIsFolder",
-          "command": "folder-structure.copyStructure",
-          "group": "copy"
-        },
-        {
-          "when": "explorerResourceIsFolder",
-          "command": "folder-structure.copyStructureAdvanced",
-          "group": "copy"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "Folder Structure",
-      "properties": {
-        "folder-structure.copyStructure.indentation": {
-          "type": "number",
-          "default": 2,
-          "description": "The number of spaces to use for indentation."
-        },
-        "folder-structure.copyStructure.type": {
-          "type": "string",
-          "default": "tree",
-          "description": "The type of folder structure.",
-          "enum": [
-            "json",
-            "tree",
-            "tabs"
-          ]
-        }
+      "menus": {
+         "commandPalette": [
+            {
+               "command": "folder-structure.copyStructure",
+               "when": "false"
+            },
+            {
+               "command": "folder-structure.copyStructureAdvanced",
+               "when": "false"
+            }
+         ],
+         "explorer/context": [
+            {
+               "when": "explorerResourceIsFolder",
+               "command": "folder-structure.copyStructure",
+               "group": "copy"
+            },
+            {
+               "when": "explorerResourceIsFolder",
+               "command": "folder-structure.copyStructureAdvanced",
+               "group": "copy"
+            }
+         ]
+      },
+      "configuration": {
+         "title": "Folder Structure",
+         "properties": {
+            "folder-structure.copyStructure.indentation": {
+               "type": "number",
+               "default": 2,
+               "description": "The number of spaces to use for indentation."
+            },
+            "folder-structure.copyStructure.ignorePatterns": {
+               "type": "array",
+               "items": {
+                  "type": "string"
+               },
+               "default": [
+                  "node_modules",
+                  "*.log"
+               ],
+               "description": "Liste de motifs (wildcards) à ignorer lors de la copie de la structure (ex: ['node_modules', '*.log'])."
+            },
+            "folder-structure.copyStructure.type": {
+               "type": "string",
+               "default": "tree",
+               "description": "The type of folder structure.",
+               "enum": [
+                  "json",
+                  "tree",
+                  "tabs"
+               ]
+            }
+         }
       }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.84.0",
-    "@types/mocha": "^10.0.3",
-    "@types/node": "18.x",
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
-    "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "^8.52.0",
-    "glob": "^10.3.10",
-    "mocha": "^10.2.0",
-    "typescript": "^5.2.2",
-    "ts-loader": "^9.5.0",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "@vscode/test-electron": "^2.3.6"
-  }
+   },
+   "scripts": {
+      "vscode:prepublish": "npm run package",
+      "compile": "webpack",
+      "watch": "webpack --watch",
+      "package": "webpack --mode production --devtool hidden-source-map",
+      "compile-tests": "tsc -p . --outDir out",
+      "watch-tests": "tsc -p . -w --outDir out",
+      "pretest": "npm run compile-tests && npm run compile && npm run lint",
+      "lint": "eslint src --ext ts",
+      "test": "node ./out/test/runTest.js"
+   },
+   "devDependencies": {
+      "@types/mocha": "^10.0.3",
+      "@types/node": "18.x",
+      "@types/vscode": "^1.84.0",
+      "@typescript-eslint/eslint-plugin": "^6.9.0",
+      "@typescript-eslint/parser": "^6.9.0",
+      "@vscode/test-electron": "^2.3.6",
+      "eslint": "^8.52.0",
+      "glob": "^10.3.10",
+      "mocha": "^10.2.0",
+      "ts-loader": "^9.5.0",
+      "typescript": "^5.2.2",
+      "webpack": "^5.89.0",
+      "webpack-cli": "^5.1.4"
+   },
+   "dependencies": {
+      "minimatch": "^10.0.1"
+   }
 }

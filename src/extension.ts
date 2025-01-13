@@ -1,151 +1,138 @@
 import * as vscode from "vscode";
+import { minimatch } from 'minimatch';
 
 type Item = { [key: string]: Item | string };
 
 export function activate(context: vscode.ExtensionContext) {
-  const config = vscode.workspace.getConfiguration(
-    "folder-structure.copyStructure"
-  );
+   const config = vscode.workspace.getConfiguration("folder-structure.copyStructure");
 
-  let copyStructureSimple = vscode.commands.registerCommand(
-    "folder-structure.copyStructure",
-    async (uri: vscode.Uri) => {
-      // Get the folder uri the user right clicked on and executed the command
-      // Read the directory contents based on the uri and crawl the whole folder
-      // Process the results to a structure
-      // Copy the structure to the clipboard
+   let copyStructureSimple = vscode.commands.registerCommand(
+      "folder-structure.copyStructure",
+      async (uri: vscode.Uri) => {
+         const type: string = config.get("type") || "tree";
+         const indentation: number = config.get("indentation") || 2;
 
-      const type: string | undefined = config.get("type") || "tree";
-      const indentation: number = config.get("indentation") || 2;
+         const structure = await listFiles(uri);
 
-      const structure = await listFiles(uri);
+         if (type === "json") {
+            const structureString = JSON.stringify(structure, null, indentation);
+            vscode.env.clipboard.writeText(structureString);
+         } else if (type === "tree" || type === "tabs") {
+            const treeStructure = convertToTree(structure);
+            const formattedTree = printTree(treeStructure, indentation, type);
+            vscode.env.clipboard.writeText(formattedTree);
+         }
 
-      if (type === "json") {
-        const structureString = JSON.stringify(structure, null, indentation);
-        vscode.env.clipboard.writeText(structureString);
-      } else if (type === "tree" || type === "tabs") {
-        const treeStructure = convertToTree(structure);
-        const formattedTree = printTree(treeStructure, indentation, type);
-        vscode.env.clipboard.writeText(formattedTree);
+         vscode.window.showInformationMessage('Structure copied to clipboard!');
       }
-    }
-  );
+   );
 
-  let copyStructureAdvanced = vscode.commands.registerCommand(
-    "folder-structure.copyStructureAdvanced",
-    async (uri: vscode.Uri) => {
-      const panel = vscode.window.createWebviewPanel(
-        "folderStructure",
-        "Folder Structure",
-        vscode.ViewColumn.One,
-        {}
-      );
+   let copyStructureAdvanced = vscode.commands.registerCommand(
+      "folder-structure.copyStructureAdvanced",
+      async (uri: vscode.Uri) => {
+         const type: string = config.get("type") || "tree";
+         const indentation: number = config.get("indentation") || 2;
+         const ignorePatterns: string[] = config.get("ignorePatterns") || ["node_modules", "*.log"];
 
-      const structure = await listFiles(uri);
+         const structure = await listFiles(uri, ignorePatterns);
 
-      panel.webview.html = webviewContent();
+         if (type === "json") {
+            const structureString = JSON.stringify(structure, null, indentation);
+            vscode.env.clipboard.writeText(structureString);
+         } else if (type === "tree" || type === "tabs") {
+            const treeStructure = convertToTree(structure);
+            const formattedTree = printTree(treeStructure, indentation, type);
+            vscode.env.clipboard.writeText(formattedTree);
+         }
 
-      console.log(structure);
-    }
-  );
+         vscode.window.showInformationMessage('Structure (with ignored patterns) copied to clipboard!');
+      }
+   );
 
-  context.subscriptions.push(copyStructureSimple, copyStructureAdvanced);
+   context.subscriptions.push(copyStructureSimple, copyStructureAdvanced);
 }
 
-function webviewContent() {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy Folder Structure</title>
-</head>
-<body>
-    
-</body>
-</html>
-`;
-}
+async function listFiles(uri: vscode.Uri, ignorePatterns?: string[]): Promise<Record<string, any>> {
+   const result = await vscode.workspace.fs.readDirectory(uri);
+   let structure: Record<string, any> = {};
 
-async function listFiles(uri: vscode.Uri): Promise<Record<string, any>> {
-  const result = await vscode.workspace.fs.readDirectory(uri);
-  let structure: Record<string, any> = {};
+   await Promise.all(
+      result.map(async ([name, type]) => {
+         // Si des patterns d'ignorance sont fournis, vérifier si le fichier/dossier doit être ignoré
+         if (ignorePatterns) {
+            const relativePath = name;
+            const shouldIgnore = ignorePatterns.some(pattern =>
+               minimatch(relativePath, pattern, { matchBase: true })
+            );
+            if (shouldIgnore) {
+               return;
+            }
+         }
 
-  await Promise.all(
-    result.map(async ([name, type]) => {
-      if (type === vscode.FileType.Directory) {
-        const path = vscode.Uri.joinPath(uri, name);
+         if (type === vscode.FileType.Directory) {
+            const path = vscode.Uri.joinPath(uri, name);
+            structure[name] = await listFiles(path, ignorePatterns);
+         } else {
+            structure[name] = "File";
+         }
+      })
+   );
 
-        // Recursively process subdirectories
-        structure[name] = await listFiles(path);
-      } else {
-        // Process files
-        structure[name] = "File";
-      }
-    })
-  );
-
-  return structure;
+   return structure;
 }
 
 function convertToTree(input: { [key: string]: string | Item }): Item {
-  const result: Item = {};
+   const result: Item = {};
 
-  for (const key in input) {
-    const value = input[key];
+   for (const key in input) {
+      const value = input[key];
+      if (typeof value === "string") {
+         result[key] = value;
+      } else {
+         const subtree = convertToTree(value);
+         result[key] = subtree;
+      }
+   }
 
-    if (typeof value === "string") {
-      // It's a file
-      result[key] = value;
-    } else {
-      // It's a directory (subfolder)
-      const subtree = convertToTree(value);
-      result[key] = subtree;
-    }
-  }
-
-  return result;
+   return result;
 }
 
 function printTree(
-  tree: Item,
-  spaces: number,
-  type: string,
-  indentation: string = ""
+   tree: Item,
+   spaces: number,
+   type: string,
+   indentation: string = ""
 ): string {
-  let result = "";
+   let result = "";
 
-  for (const key in tree) {
-    const value = tree[key];
-
-    if (typeof value === "string") {
-      // It's a file
-      if (type === "tabs") {
-        result += `${indentation}${key}\n`;
+   for (const key in tree) {
+      const value = tree[key];
+      if (typeof value === "string") {
+         if (type === "tabs") {
+            result += `${indentation}${key}\n`;
+         } else {
+            result += `${indentation}|-- ${key}\n`;
+         }
       } else {
-        result += `${indentation}|-- ${key}\n`;
+         if (type === "tabs") {
+            result += `${indentation}${key}\n${printTree(
+               value,
+               spaces,
+               type,
+               `${indentation}${" ".repeat(spaces)}`
+            )}`;
+         } else {
+            result += `${indentation}|-- ${key}\n${printTree(
+               value,
+               spaces,
+               type,
+               `${indentation}${" ".repeat(spaces)}`
+            )}`;
+         }
       }
-    } else {
-      // It's a directory (subfolder)
-      if (type === "tabs") {
-        result += `${indentation}${key}\n${printTree(
-          value,
-          spaces,
-          type,
-          `${indentation}${" ".repeat(spaces)}`
-        )}`;
-      } else {
-        result += `${indentation}|-- ${key}\n${printTree(
-          value,
-          spaces,
-          type,
-          `${indentation}${" ".repeat(spaces)}`
-        )}`;
-      }
-    }
-  }
+   }
 
-  return result;
+   return result;
 }
 
-export function deactivate() {}
+export function deactivate() { }
